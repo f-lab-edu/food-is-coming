@@ -1,4 +1,4 @@
-package com.kotlin.delivery.model.entity.base
+package com.kotlin.delivery.common.entity
 
 import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType
@@ -7,8 +7,6 @@ import javax.persistence.MappedSuperclass
 
 @MappedSuperclass
 abstract class BaseEntity {
-
-    // equals & hashCode override required here
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
