@@ -9,5 +9,4 @@ class DeliveryApplicationTests {
     @Test
     fun contextLoads() {
     }
-
 }
