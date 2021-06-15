@@ -1,7 +1,6 @@
 package com.kotlin.delivery.member.dto
 
 import com.kotlin.delivery.member.entity.Member
-import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Pattern
 
 data class MemberDTO(
@@ -14,7 +13,7 @@ data class MemberDTO(
 
     @field:Pattern(
         regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\\W).{8,20}",
-        message = "비밀번호는 영문 대/소문자, 숫자, 특수문자를 적어도 하나 씩 포함해서 8 ~ 20자 이내로 입력해주세요.)"
+        message = "비밀번호는 영문 대/소문자, 숫자, 특수문자를 적어도 하나 씩 포함해서 8 ~ 20자 이내로 입력해주세요."
     )
     val password: String,
 
@@ -30,7 +29,6 @@ data class MemberDTO(
     )
     val mobile: String,
 
-    @field:NotBlank(message = "")
     val type: Member.Type
 ) {
     fun toMemberEntity(req: MemberDTO, encodedPassword: String) =
