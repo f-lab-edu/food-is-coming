@@ -34,7 +34,7 @@ data class MemberDTO(
     val type: Member.Type
 ) {
     fun toMemberEntity(req: MemberDTO, encodedPassword: String) =
-        Member (
+        Member(
             email = req.email,
             password = encodedPassword,
             nickname = req.nickname,

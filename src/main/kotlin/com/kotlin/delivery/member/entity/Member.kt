@@ -37,7 +37,7 @@ class Member(
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     val status: Status = Status.ACTIVE
-): MutableEntity() {
+) : MutableEntity() {
 
     enum class Type {
         CUSTOMER, RIDER, OWNER

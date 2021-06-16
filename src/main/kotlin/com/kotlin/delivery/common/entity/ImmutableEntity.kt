@@ -5,7 +5,7 @@ import javax.persistence.Column
 import javax.persistence.MappedSuperclass
 
 @MappedSuperclass
-abstract class ImmutableEntity: BaseEntity() {
+abstract class ImmutableEntity : BaseEntity() {
 
     @Column(nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now()
