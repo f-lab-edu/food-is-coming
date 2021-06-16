@@ -2,17 +2,55 @@ package com.kotlin.delivery.member.service
 
 import com.kotlin.delivery.member.dto.MemberDTO
 import com.kotlin.delivery.member.entity.Member
+import com.kotlin.delivery.member.repository.MemberRepository
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.BDDMockito.any
+import org.mockito.BDDMockito.given
+import org.mockito.BDDMockito.verify
+import org.mockito.InjectMocks
+import org.mockito.Mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
+import org.mockito.junit.jupiter.MockitoExtension
+import org.springframework.dao.DuplicateKeyException
+import org.springframework.security.crypto.password.PasswordEncoder
 import javax.validation.ConstraintViolation
 import javax.validation.Validation
 import javax.validation.Validator
 
+@DisplayName("회원가입 로직에 대한 서비스 계층을 테스트합니다.")
+@ExtendWith(MockitoExtension::class)
 internal class SignUpServiceTest {
+
+    @InjectMocks
+    lateinit var memberService: MemberService
+
+    @Mock
+    lateinit var memberRepository: MemberRepository
+
+    @Mock
+    lateinit var passwordEncoder: PasswordEncoder
+
+    lateinit var fixture: MemberDTO
+
+    @BeforeEach
+    fun createMemberDTO() {
+        fixture = MemberDTO(
+            email = "test@email.com",
+            password = "!@Soo#$1",
+            nickname = "배달Master1",
+            mobile = "010-0000-0000",
+            Member.Type.RIDER
+        )
+    }
 
     private val validator: Validator = Validation.buildDefaultValidatorFactory().validator
 
@@ -47,6 +85,42 @@ internal class SignUpServiceTest {
         mobile = mobile,
         Member.Type.RIDER
     )
+
+    @Test
+    @DisplayName("중복된 이메일이 발견되지 않는 경우 회원가입에 성공합니다.")
+    fun `member sign up success when no duplicate email found`() {
+        // given
+        given(memberRepository.existsByEmail(fixture.email)).willReturn(false)
+
+        val encodedPassword = "encodedPassword"
+        given(passwordEncoder.encode(fixture.password)).willReturn(encodedPassword)
+        val member = fixture.toMemberEntity(fixture, encodedPassword)
+
+        given(memberRepository.save(member)).willReturn(member)
+
+        // when
+        memberService.signUp(memberDTO = fixture)
+
+        // then
+        verify(memberRepository, times(1)).existsByEmail(fixture.email)
+        verify(passwordEncoder, times(1)).encode(fixture.password)
+        verify(memberRepository, times(1)).save(member)
+    }
+
+    @Test
+    @DisplayName("중복된 이메일이 발견되는 경우, 회원가입에 실패하며 DuplicateKeyException 이 발생합니다.")
+    fun `member sign up fail with duplicate email found`() {
+        // given
+        given(memberRepository.existsByEmail(fixture.email)).willReturn(true)
+
+        // when
+        assertThrows<DuplicateKeyException> { memberService.signUp(memberDTO = fixture) }
+
+        // then
+        verify(memberRepository, times(1)).existsByEmail(fixture.email)
+        verify(passwordEncoder, never()).encode(fixture.password)
+        verify(memberRepository, never()).save(any())
+    }
 
     /*
         Email Validation Test
