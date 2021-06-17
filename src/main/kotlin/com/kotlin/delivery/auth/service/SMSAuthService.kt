@@ -13,7 +13,6 @@ class SMSAuthService(
     private val authRepository: AuthRepository,
 
     private val prop: SMSAuthProperty
-
 ) : AuthService {
 
     override fun sendAuth(mobile: String) {
@@ -25,7 +24,7 @@ class SMSAuthService(
     }
 
     override fun verifyAuth(mobile: String, auth: String) {
-        val saved = authRepository.searchAuth(mobile, auth)
+        val saved = authRepository.searchAuth(mobile)
         if (saved != auth) throw AuthNotFoundException("인증정보가 일치하지 않습니다. 인증번호를 다시 확인해주세요.")
         authRepository.deleteAuth(mobile)
     }

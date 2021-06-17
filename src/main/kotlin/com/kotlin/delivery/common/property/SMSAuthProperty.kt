@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConstructorBinding
 @ConfigurationProperties(prefix = "sms.auth-api")
-data class SMSAuthProperty(
+open class SMSAuthProperty(
 
     val apiKey: String,
 

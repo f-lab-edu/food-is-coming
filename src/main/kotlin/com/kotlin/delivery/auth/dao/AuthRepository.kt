@@ -14,7 +14,7 @@ class AuthRepository(
     fun insertAuth(mobile: String, auth: String) =
         redisTemplate.opsForValue().set(mobile, auth, Duration.ofMinutes(3L))
 
-    fun searchAuth(mobile: String, auth: String) = redisTemplate.opsForValue().get(mobile)
+    fun searchAuth(mobile: String) = redisTemplate.opsForValue().get(mobile)
 
     fun deleteAuth(mobile: String) = redisTemplate.delete(mobile)
 }
