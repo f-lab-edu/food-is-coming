@@ -7,7 +7,6 @@ spring:
     jpa:
         database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
         database: mysql
-        show-sql: true
         generate-ddl: true
         hibernate:
           ddl-auto: update
@@ -15,6 +14,7 @@ spring:
         properties:
           hibernate:
             format_sql: true
+            show_sql: true
 
     redis:
         host: localhost
@@ -26,3 +26,8 @@ sms:
         secret: (enter your secret key)
         sender: (enter a representative sender number)
         type: (enter sms type to send)
+
+auth:
+    jwt:
+        secretkey: c3ByaW5nLWJvb3Qtc2VjdXJpdHktand0LXR1dG9yaWFsLWppd29vbi1zcHJpbmctYm9vdC1zZWN1cml0eS1qd3QtdHV0b3JpYWwK
+        duration: 86400000

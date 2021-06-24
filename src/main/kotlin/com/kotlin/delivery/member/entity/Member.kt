@@ -12,7 +12,7 @@ import javax.persistence.Table
 @Table(name = "members")
 class Member(
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     val email: String,
 
     @Column(nullable = false)
