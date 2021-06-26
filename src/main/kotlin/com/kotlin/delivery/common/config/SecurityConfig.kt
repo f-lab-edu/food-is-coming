@@ -14,7 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder
 class SecurityConfig : WebSecurityConfigurerAdapter() {
 
     override fun configure(http: HttpSecurity) {
-        http.csrf().disable()
+        http
+            .csrf().disable()
+            .authorizeRequests()
+            .antMatchers("/members/common/sign-up").permitAll()
+            .antMatchers("/members/common/login").permitAll()
+            .anyRequest().authenticated()
     }
 
     @Bean
