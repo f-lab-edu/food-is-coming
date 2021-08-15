@@ -20,14 +20,16 @@ class SMSAuthService(
         val sms = Message(prop.apiKey, prop.secret)
         sms.send(createSMS(to, auth))
 
-        authRepository.insertAuth(to, auth)
+        authRepository.insert(to, auth)
     }
 
-    override fun verifyAuth(to: String, inputAuth: String) {
-        val savedAuth = authRepository.searchAuth(to)
-        if (savedAuth != inputAuth) throw AuthNotFoundException("인증정보가 일치하지 않습니다. 인증번호를 다시 확인해주세요.")
-        authRepository.deleteAuth(to)
-    }
+    override fun verifyAuth(to: String, inputAuth: String) =
+        authRepository.select(to).run {
+            requireNotNull(this)
+            if (this != inputAuth) throw AuthNotFoundException("인증정보가 일치하지 않습니다. 인증번호를 다시 확인해주세요.")
+        }.also {
+            authRepository.delete(to)
+        }
 
     private fun createSMS(mobile: String, auth: String) = hashMapOf(
         "from" to prop.sender,

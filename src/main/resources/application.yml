@@ -29,5 +29,6 @@ sms:
 
 auth:
     jwt:
-        secret: (enter your secret key)
-        duration: 86400
+        secret: c3ByaW5nLWJvb3Qtc2VjdXJpdHktand0LXR1dG9yaWFsLWppd29vbi1zcHJpbmctYm9vdC1zZWN1cml0eS1qd3QtdHV0b3JpYWwK
+        accessduration: 30
+        refreshduration: 10080

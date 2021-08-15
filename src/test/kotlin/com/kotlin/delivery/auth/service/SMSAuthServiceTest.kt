@@ -38,28 +38,30 @@ internal class SMSAuthServiceTest {
     @DisplayName("문자로 전송받은 인증번호를 올바르게 입력하면 인증에 성공합니다.")
     fun `verify auth number success with correct auth number input`() {
         // given
-        given(authRepository.searchAuth(mobile)).willReturn(actualAuth)
-        given(authRepository.deleteAuth(mobile)).willReturn(true)
+        given(authRepository.select(mobile)).willReturn(actualAuth)
+        given(authRepository.delete(mobile)).willReturn(true)
 
         // when
         authService.verifyAuth(mobile, inputAuth)
 
         // then
-        verify(authRepository, times(1)).searchAuth(mobile)
-        verify(authRepository, times(1)).deleteAuth(mobile)
+        verify(authRepository, times(1)).select(mobile)
+        verify(authRepository, times(1)).delete(mobile)
     }
 
     @Test
     @DisplayName("문자로 전송받은 인증번호와 다른 번호를 입력하면 인증에 실패하며 AuthNotFoundException 이 발생합니다.")
     fun `verify auth number fail with incorrect auth number input`() {
         // given
-        given(authRepository.searchAuth(mobile)).willReturn("123123")
+        given(authRepository.select(mobile)).willReturn("123123")
 
         // when
         assertThrows<AuthNotFoundException> { authService.verifyAuth(mobile, inputAuth) }
 
         // then
-        verify(authRepository, times(1)).searchAuth(mobile)
-        verify(authRepository, never()).deleteAuth(mobile)
+        verify(authRepository, times(1)).select(mobile)
+        verify(authRepository, never()).delete(mobile)
     }
+
+    // TODO: a test for when null from select (redis)
 }
