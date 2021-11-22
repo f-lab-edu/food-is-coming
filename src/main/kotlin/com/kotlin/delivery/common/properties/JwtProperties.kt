@@ -1,4 +1,4 @@
-package com.kotlin.delivery.common.property
+package com.kotlin.delivery.common.properties
 
 import io.jsonwebtoken.io.Decoders
 import io.jsonwebtoken.security.Keys
@@ -8,7 +8,7 @@ import java.security.Key
 
 @ConstructorBinding
 @ConfigurationProperties(prefix = "auth.jwt")
-class JwtProperty(
+class JwtProperties(
 
     secret: String,
 

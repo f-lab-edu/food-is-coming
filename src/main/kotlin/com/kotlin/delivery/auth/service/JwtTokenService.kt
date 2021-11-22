@@ -3,7 +3,7 @@ package com.kotlin.delivery.auth.service
 import com.kotlin.delivery.auth.dao.AuthRepository
 import com.kotlin.delivery.auth.dto.TokenSet
 import com.kotlin.delivery.common.exception.AuthNotFoundException
-import com.kotlin.delivery.common.property.JwtProperty
+import com.kotlin.delivery.common.properties.JwtProperties
 import io.jsonwebtoken.*
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -20,7 +20,7 @@ import java.util.Date
 @Service
 class JwtTokenService(
 
-    private val prop: JwtProperty,
+    private val prop: JwtProperties,
 
     private val authRepository: AuthRepository
 ) {

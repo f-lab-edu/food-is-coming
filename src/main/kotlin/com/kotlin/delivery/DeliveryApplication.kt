@@ -4,7 +4,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 
-@ConfigurationPropertiesScan("com.kotlin.delivery.common.property")
+@ConfigurationPropertiesScan("com.kotlin.delivery.common.properties")
 @SpringBootApplication
 class DeliveryApplication
 

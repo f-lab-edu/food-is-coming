@@ -2,7 +2,7 @@ package com.kotlin.delivery.auth.service
 
 import com.kotlin.delivery.auth.dao.AuthRepository
 import com.kotlin.delivery.common.exception.AuthNotFoundException
-import com.kotlin.delivery.common.property.SMSAuthProperty
+import com.kotlin.delivery.common.properties.SMSAuthProperties
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -17,16 +17,16 @@ import org.mockito.junit.jupiter.MockitoExtension
 
 @DisplayName("문자(SMS) 인증로직에 대한 서비스 계층을 테스트합니다.")
 @ExtendWith(MockitoExtension::class)
-internal class SMSAuthServiceTest {
+internal class SmsAuthServiceTest {
 
     @InjectMocks
-    lateinit var authService: SMSAuthService
+    lateinit var authService: SmsAuthService
 
     @Mock
     lateinit var authRepository: AuthRepository
 
     @Mock
-    lateinit var prop: SMSAuthProperty
+    lateinit var prop: SMSAuthProperties
 
     private val mobile = "000-0000-0000"
 
