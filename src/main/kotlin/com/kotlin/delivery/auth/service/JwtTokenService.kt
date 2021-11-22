@@ -4,7 +4,13 @@ import com.kotlin.delivery.auth.dao.AuthRepository
 import com.kotlin.delivery.auth.dto.TokenSet
 import com.kotlin.delivery.common.exception.AuthNotFoundException
 import com.kotlin.delivery.common.properties.JwtProperties
-import io.jsonwebtoken.*
+import io.jsonwebtoken.Claims
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.Jws
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.MalformedJwtException
+import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.UnsupportedJwtException
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
@@ -43,6 +49,7 @@ class JwtTokenService(
     }
 
     fun reissueToken(tokenSet: TokenSet): TokenSet {
+        // TODO: 여기 에러 핸들링 필요할 듯 하다. ControllerAdvice 만들어줄 때 함께 처리하자.
         parseToken(tokenSet.refreshToken)
 
         val authentication = createAuthenticationToken(parseToken(tokenSet.accessToken))
