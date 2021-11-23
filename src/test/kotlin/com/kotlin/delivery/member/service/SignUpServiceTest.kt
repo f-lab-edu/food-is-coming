@@ -205,7 +205,7 @@ internal class SignUpServiceTest {
     @Test
     @DisplayName("비밀번호가 알파벳 대문자를 하나도 포함하고 있지 않은 경우 validation 위반이 발생합니다.")
     fun `password validation fail with password having no UPPERCASE letter`() {
-        val violations = validator.validate(createPasswordVariableMember("!@Soo#$1".toLowerCase()))
+        val violations = validator.validate(createPasswordVariableMember("!@Soo#$1".lowercase()))
         assertEquals(1, violations.size)
         assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
             .containsOnly(Tuple("비밀번호는 영문 대/소문자, 숫자, 특수문자를 적어도 하나 씩 포함해서 8 ~ 20자 이내로 입력해주세요."))
@@ -214,7 +214,7 @@ internal class SignUpServiceTest {
     @Test
     @DisplayName("비밀번호가 알파벳 소문자를 하나도 포함하고 있지 않은 경우 validation 위반이 발생합니다.")
     fun `password validation fail with password having no lowercase letter`() {
-        val violations = validator.validate(createPasswordVariableMember("!@Soo#$1".toUpperCase()))
+        val violations = validator.validate(createPasswordVariableMember("!@Soo#$1".uppercase()))
         assertEquals(1, violations.size)
         assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
             .containsOnly(Tuple("비밀번호는 영문 대/소문자, 숫자, 특수문자를 적어도 하나 씩 포함해서 8 ~ 20자 이내로 입력해주세요."))

@@ -1,5 +1,6 @@
 package com.kotlin.delivery.member.service
 
+import com.kotlin.delivery.auth.dto.TokenSet
 import com.kotlin.delivery.auth.service.JwtTokenService
 import com.kotlin.delivery.member.dto.LoginRequest
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
@@ -13,8 +14,11 @@ class JwtTokenLoginService(
     private val tokenService: JwtTokenService
 ) : LoginService {
 
-    override fun login(req: LoginRequest): String {
+    override fun login(req: LoginRequest): TokenSet {
         val authentication = authManagerBuilder.`object`.authenticate(req.toAuthToken())
-        return tokenService.createToken(authentication)
+
+        return tokenService.createTokenSet(authentication).also {
+            tokenService.saveRefreshToken(authentication.name, it.refreshToken)
+        }
     }
 }
