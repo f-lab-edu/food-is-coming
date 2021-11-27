@@ -1,8 +1,9 @@
 package com.kotlin.delivery.member.customer
 
 import com.kotlin.delivery.common.config.BeanConfig
-import com.kotlin.delivery.common.entity.Member
+import com.kotlin.delivery.member.common.entity.Member
 import com.kotlin.delivery.member.common.dto.SignUpRequest
+import com.kotlin.delivery.member.common.entity.MemberSummary
 import com.kotlin.delivery.member.common.util.MemberType
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import org.assertj.core.groups.Tuple
@@ -20,13 +21,9 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
-import org.mockito.MockitoAnnotations
-import org.mockito.Spy
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder
-import org.springframework.security.crypto.password.PasswordEncoder
 import javax.validation.ConstraintViolation
 import javax.validation.Validation
 import javax.validation.Validator
@@ -94,12 +91,13 @@ internal class CustomerSignUpServiceTest {
         // given
         given(customerRepository.existsByEmail(fixture.email)).willReturn(false)
 
-        val member = Member(
-            req = fixture,
-            encodedPassword =  customerSignUpService.passwordEncoder.encode(fixture.password),
+        val summary = MemberSummary(
+            email = fixture.email,
+            password = customerSignUpService.passwordEncoder.encode(fixture.password),
             type = MemberType.RIDER
         )
-        val customer = Customer(member)
+        val detail = Member(fixture.nickname, fixture.mobile)
+        val customer = Customer(summary, detail)
         given(beanConfig.getBean(CustomerRepository::class)).willReturn(customerRepository)
         given(customerRepository.save(customer)).willReturn(customer)
 

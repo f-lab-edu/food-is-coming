@@ -49,7 +49,6 @@ class JwtTokenService(
     }
 
     fun reissueToken(tokenSet: TokenSet): TokenSet {
-        // TODO: 여기 에러 핸들링 필요할 듯 하다. ControllerAdvice 만들어줄 때 함께 처리하자.
         parseToken(tokenSet.refreshToken)
 
         val authentication = createAuthenticationToken(parseToken(tokenSet.accessToken))
@@ -83,11 +82,11 @@ class JwtTokenService(
             Jwts.parserBuilder().setSigningKey(prop.key).build().parseClaimsJws(token)
         } catch (e: RuntimeException) {
             when (e) {
-                is SignatureException -> { throw SignatureException("서명이 잘못된 토큰입니다.", e) }
-                is MalformedJwtException -> { throw MalformedJwtException("올바르게 생성된 토큰이 아닙니다.", e) }
-                is ExpiredJwtException -> { throw ExpiredJwtException(e.header, e.claims, "이미 만료된 토큰입니다.", e) }
-                is UnsupportedJwtException -> { throw UnsupportedJwtException("지원되지 않는 형식의 토큰입니다.", e) }
-                else -> { throw IllegalArgumentException("토큰이 입력되지 않았습니다.", e) }
+                is SignatureException -> throw SignatureException("서명이 잘못된 토큰입니다.", e)
+                is MalformedJwtException -> throw MalformedJwtException("올바르게 생성된 토큰이 아닙니다.", e)
+                is ExpiredJwtException -> throw ExpiredJwtException(e.header, e.claims, "이미 만료된 토큰입니다.", e)
+                is UnsupportedJwtException -> throw UnsupportedJwtException("지원되지 않는 형식의 토큰입니다.", e)
+                else -> throw IllegalArgumentException("토큰이 입력되지 않았습니다.", e)
             }
         }
 
