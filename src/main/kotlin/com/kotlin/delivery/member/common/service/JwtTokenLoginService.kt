@@ -1,8 +1,8 @@
-package com.kotlin.delivery.member.service
+package com.kotlin.delivery.member.common.service
 
 import com.kotlin.delivery.auth.dto.TokenSet
 import com.kotlin.delivery.auth.service.JwtTokenService
-import com.kotlin.delivery.member.dto.LoginRequest
+import com.kotlin.delivery.member.common.dto.LoginRequest
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.stereotype.Service
 

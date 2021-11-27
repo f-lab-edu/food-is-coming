@@ -5,20 +5,24 @@ import com.kotlin.delivery.auth.jwt.JwtAuthenticationEntryPoint
 import com.kotlin.delivery.auth.service.JwtTokenService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 
 @Configuration
 @EnableWebSecurity
+//@EnableGlobalMethodSecurity
 class SecurityConfig(
 
-    private val authEntryPoint: JwtAuthenticationEntryPoint,
+    private val jwtAuthEntryPoint: JwtAuthenticationEntryPoint,
 
-    private val accessDeniedHandler: JwtAccessDeniedHandler,
+    private val jwtAccessDeniedHandler: JwtAccessDeniedHandler,
 
     private val tokenService: JwtTokenService
 ) : WebSecurityConfigurerAdapter() {
@@ -27,12 +31,22 @@ class SecurityConfig(
         http
             .csrf().disable()
             .exceptionHandling()
-            .authenticationEntryPoint(authEntryPoint)
-            .accessDeniedHandler(accessDeniedHandler)
+            .authenticationEntryPoint(jwtAuthEntryPoint)
+            .accessDeniedHandler(jwtAccessDeniedHandler)
+            .and()
+        /*
+            .and()
+            .headers()
+            .frameOptions()
+            .sameOrigin()
+        */
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests()
-            .antMatchers("/members/common/sign-up").permitAll()
-            .antMatchers("/members/common/login").permitAll()
+            .antMatchers("/**/sign-up").permitAll()
+            .antMatchers("/customers/login").permitAll()
+            .antMatchers("/members/common/my-info").hasAuthority("MEMBER")
             .anyRequest().authenticated()
             .and()
             .apply(JwtSecurityConfig(tokenService))
@@ -44,5 +58,10 @@ class SecurityConfig(
         val encoders = mutableMapOf<String, PasswordEncoder>()
         encoders[encoder] = BCryptPasswordEncoder(4)
         return DelegatingPasswordEncoder(encoder, encoders)
+    }
+
+    @Bean
+    fun roleHierarchy() = RoleHierarchyImpl().apply {
+        this.setHierarchy("CUSTOMER > MEMBER\nRIDER > MEMBER\nOWNER > MEMBER")
     }
 }
