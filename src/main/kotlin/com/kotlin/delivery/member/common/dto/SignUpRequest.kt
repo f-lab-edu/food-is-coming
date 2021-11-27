@@ -1,9 +1,10 @@
-package com.kotlin.delivery.member.dto
+package com.kotlin.delivery.member.common.dto
 
-import com.kotlin.delivery.member.entity.Member
+import com.kotlin.delivery.member.common.util.MemberType
+import javax.validation.constraints.NotNull
 import javax.validation.constraints.Pattern
 
-data class MemberDTO(
+data class SignUpRequest(
 
     @field:Pattern(
         regexp = "^[_a-z0-9-]+(.[_a-z0-9-]+)*@(?:\\w+\\.)+\\w+$",
@@ -27,16 +28,5 @@ data class MemberDTO(
         regexp = "^\\d{3}-\\d{4}-\\d{4}\$",
         message = "휴대폰 번호를 형식에 맞게 입력해주세요."
     )
-    val mobile: String,
-
-    val type: Member.Type
-) {
-    fun toMemberEntity(req: MemberDTO, encodedPassword: String) =
-        Member(
-            email = req.email,
-            password = encodedPassword,
-            nickname = req.nickname,
-            mobile = req.mobile,
-            type = req.type
-        )
-}
+    val mobile: String
+)

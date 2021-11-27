@@ -17,10 +17,10 @@ class AuthController(private val authService: AuthService, private val tokenServ
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/sms-auth")
-    fun sendSMSAuth(@RequestParam mobile: String) = "Sent"
+    fun sendSMSAuth(@RequestParam mobile: String) = authService.sendAuth(mobile)
 
     @PostMapping("/sms-auth/verification")
-    fun verifySMSAuth(@RequestParam mobile: String, @RequestParam auth: String) = "Verified"
+    fun verifySMSAuth(@RequestParam mobile: String, @RequestParam auth: String) = authService.verifyAuth(mobile, auth)
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/token-reissue")

@@ -1,4 +1,4 @@
-package com.kotlin.delivery.member.entity
+package com.kotlin.delivery.common.entity
 
 import javax.persistence.Embeddable
 

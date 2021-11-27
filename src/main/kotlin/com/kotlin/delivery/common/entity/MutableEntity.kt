@@ -7,6 +7,6 @@ import javax.persistence.MappedSuperclass
 @MappedSuperclass
 abstract class MutableEntity : ImmutableEntity() {
 
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     var updatedAt: LocalDateTime = LocalDateTime.now()
 }

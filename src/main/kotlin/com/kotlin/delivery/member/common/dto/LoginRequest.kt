@@ -1,4 +1,4 @@
-package com.kotlin.delivery.member.dto
+package com.kotlin.delivery.member.common.dto
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 

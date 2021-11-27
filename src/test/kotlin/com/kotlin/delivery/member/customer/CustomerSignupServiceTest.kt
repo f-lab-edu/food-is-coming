@@ -1,8 +1,9 @@
-package com.kotlin.delivery.member.service
+package com.kotlin.delivery.member.customer
 
-import com.kotlin.delivery.member.dto.MemberDTO
-import com.kotlin.delivery.member.entity.Member
-import com.kotlin.delivery.member.repository.MemberRepository
+import com.kotlin.delivery.common.config.BeanConfig
+import com.kotlin.delivery.common.entity.Member
+import com.kotlin.delivery.member.common.dto.SignUpRequest
+import com.kotlin.delivery.member.common.util.MemberType
 import org.assertj.core.api.AssertionsForInterfaceTypes.assertThat
 import org.assertj.core.groups.Tuple
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -19,8 +20,12 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
+import org.mockito.MockitoAnnotations
+import org.mockito.Spy
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.dao.DuplicateKeyException
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import javax.validation.ConstraintViolation
 import javax.validation.Validation
@@ -28,98 +33,98 @@ import javax.validation.Validator
 
 @DisplayName("회원가입 로직에 대한 서비스 계층을 테스트합니다.")
 @ExtendWith(MockitoExtension::class)
-internal class SignUpServiceTest {
+internal class CustomerSignUpServiceTest {
 
     @InjectMocks
-    lateinit var memberService: MemberService
+    lateinit var customerSignUpService: CustomerSignupService
 
     @Mock
-    lateinit var memberRepository: MemberRepository
+    lateinit var customerRepository: CustomerRepository
 
     @Mock
-    lateinit var passwordEncoder: PasswordEncoder
+    lateinit var beanConfig: BeanConfig
 
-    lateinit var fixture: MemberDTO
+    private lateinit var fixture: SignUpRequest
 
     @BeforeEach
     fun createMemberDTO() {
-        fixture = MemberDTO(
+        fixture = SignUpRequest(
             email = "test@email.com",
             password = "!@Soo#$1",
             nickname = "배달Master1",
-            mobile = "010-0000-0000",
-            Member.Type.RIDER
+            mobile = "010-0000-0000"
         )
+
+        customerSignUpService.passwordEncoder = BCryptPasswordEncoder()
     }
 
     private val validator: Validator = Validation.buildDefaultValidatorFactory().validator
 
-    private fun createEmailVariableMember(email: String) = MemberDTO(
+    private fun createEmailVariableMember(email: String) = SignUpRequest(
         email = email,
         password = "!@Soo#$1",
         nickname = "배달Master1",
-        mobile = "010-0000-0000",
-        Member.Type.RIDER
+        mobile = "010-0000-0000"
     )
 
-    private fun createPasswordVariableMember(password: String) = MemberDTO(
+    private fun createPasswordVariableMember(password: String) = SignUpRequest(
         email = "test@email.com",
         password = password,
         nickname = "배달Master1",
-        mobile = "010-0000-0000",
-        Member.Type.RIDER
+        mobile = "010-0000-0000"
     )
 
-    private fun createNicknameVariableMember(nickname: String) = MemberDTO(
+    private fun createNicknameVariableMember(nickname: String) = SignUpRequest(
         email = "test@email.com",
         password = "!@Soo#$1",
         nickname = nickname,
-        mobile = "010-0000-0000",
-        Member.Type.RIDER
+        mobile = "010-0000-0000"
     )
 
-    private fun createMobileVariableMember(mobile: String) = MemberDTO(
+    private fun createMobileVariableMember(mobile: String) = SignUpRequest(
         email = "test@email.com",
         password = "!@Soo#$1",
         nickname = "배달Master1",
-        mobile = mobile,
-        Member.Type.RIDER
+        mobile = mobile
     )
 
     @Test
     @DisplayName("중복된 이메일이 발견되지 않는 경우 회원가입에 성공합니다.")
     fun `member sign up success when no duplicate email found`() {
         // given
-        given(memberRepository.existsByEmail(fixture.email)).willReturn(false)
+        given(customerRepository.existsByEmail(fixture.email)).willReturn(false)
 
-        val encodedPassword = "encodedPassword"
-        given(passwordEncoder.encode(fixture.password)).willReturn(encodedPassword)
-        val member = fixture.toMemberEntity(fixture, encodedPassword)
-
-        given(memberRepository.save(member)).willReturn(member)
+        val member = Member(
+            req = fixture,
+            encodedPassword =  customerSignUpService.passwordEncoder.encode(fixture.password),
+            type = MemberType.RIDER
+        )
+        val customer = Customer(member)
+        given(beanConfig.getBean(CustomerRepository::class)).willReturn(customerRepository)
+        given(customerRepository.save(customer)).willReturn(customer)
 
         // when
-        memberService.signUp(memberDTO = fixture)
+        customerSignUpService.signUp(req = fixture, MemberType.RIDER, CustomerRepository::class)
 
         // then
-        verify(memberRepository, times(1)).existsByEmail(fixture.email)
-        verify(passwordEncoder, times(1)).encode(fixture.password)
-        verify(memberRepository, times(1)).save(member)
+        verify(customerRepository, times(1)).existsByEmail(fixture.email)
+        verify(customerRepository, times(1)).save(customer)
     }
 
     @Test
     @DisplayName("중복된 이메일이 발견되는 경우, 회원가입에 실패하며 DuplicateKeyException 이 발생합니다.")
     fun `member sign up fail with duplicate email found`() {
         // given
-        given(memberRepository.existsByEmail(fixture.email)).willReturn(true)
+        given(beanConfig.getBean(CustomerRepository::class)).willReturn(customerRepository)
+        given(customerRepository.existsByEmail(fixture.email)).willReturn(true)
 
         // when
-        assertThrows<DuplicateKeyException> { memberService.signUp(memberDTO = fixture) }
+        assertThrows<DuplicateKeyException> { customerSignUpService.signUp(req = fixture, MemberType.RIDER, CustomerRepository::class) }
 
         // then
-        verify(memberRepository, times(1)).existsByEmail(fixture.email)
-        verify(passwordEncoder, never()).encode(fixture.password)
-        verify(memberRepository, never()).save(any())
+        verify(beanConfig, times(1)).getBean(CustomerRepository::class)
+        verify(customerRepository, times(1)).existsByEmail(fixture.email)
+        verify(customerRepository, never()).save(any())
     }
 
     /*
@@ -137,7 +142,7 @@ internal class SignUpServiceTest {
     fun `email validation fail with no value before @`() {
         val violations = validator.validate(createEmailVariableMember("@email.com"))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("이메일 형식에 맞게 입력해주세요."))
     }
 
@@ -146,7 +151,7 @@ internal class SignUpServiceTest {
     fun `email validation fail with no value between @ and dot`() {
         val violations = validator.validate(createEmailVariableMember("test@.com"))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("이메일 형식에 맞게 입력해주세요."))
     }
 
@@ -155,7 +160,7 @@ internal class SignUpServiceTest {
     fun `email validation fail with no value after dot`() {
         val violations = validator.validate(createEmailVariableMember("test@email."))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("이메일 형식에 맞게 입력해주세요."))
     }
 
@@ -164,7 +169,7 @@ internal class SignUpServiceTest {
     fun `email validation fail with empty string as input`() {
         val violations = validator.validate(createEmailVariableMember(""))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("이메일 형식에 맞게 입력해주세요."))
     }
 
@@ -186,7 +191,7 @@ internal class SignUpServiceTest {
 
         val violations = validator.validate(createPasswordVariableMember(password))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("비밀번호는 영문 대/소문자, 숫자, 특수문자를 적어도 하나 씩 포함해서 8 ~ 20자 이내로 입력해주세요."))
     }
 
@@ -198,7 +203,7 @@ internal class SignUpServiceTest {
 
         val violations = validator.validate(createPasswordVariableMember(password))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("비밀번호는 영문 대/소문자, 숫자, 특수문자를 적어도 하나 씩 포함해서 8 ~ 20자 이내로 입력해주세요."))
     }
 
@@ -207,7 +212,7 @@ internal class SignUpServiceTest {
     fun `password validation fail with password having no UPPERCASE letter`() {
         val violations = validator.validate(createPasswordVariableMember("!@Soo#$1".lowercase()))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("비밀번호는 영문 대/소문자, 숫자, 특수문자를 적어도 하나 씩 포함해서 8 ~ 20자 이내로 입력해주세요."))
     }
 
@@ -216,7 +221,7 @@ internal class SignUpServiceTest {
     fun `password validation fail with password having no lowercase letter`() {
         val violations = validator.validate(createPasswordVariableMember("!@Soo#$1".uppercase()))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("비밀번호는 영문 대/소문자, 숫자, 특수문자를 적어도 하나 씩 포함해서 8 ~ 20자 이내로 입력해주세요."))
     }
 
@@ -225,7 +230,7 @@ internal class SignUpServiceTest {
     fun `password validation fail with password having no number`() {
         val violations = validator.validate(createPasswordVariableMember("!@Soo#$!"))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("비밀번호는 영문 대/소문자, 숫자, 특수문자를 적어도 하나 씩 포함해서 8 ~ 20자 이내로 입력해주세요."))
     }
 
@@ -234,7 +239,7 @@ internal class SignUpServiceTest {
     fun `password validation fail with password having no special chars`() {
         val violations = validator.validate(createPasswordVariableMember("12Soo123"))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("비밀번호는 영문 대/소문자, 숫자, 특수문자를 적어도 하나 씩 포함해서 8 ~ 20자 이내로 입력해주세요."))
     }
 
@@ -256,7 +261,7 @@ internal class SignUpServiceTest {
 
         val violations = validator.validate(createNicknameVariableMember(nickname))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("한글/영문 대소문자 혹은 숫자를 3 ~ 10자 내로 입력해주세요."))
     }
 
@@ -268,7 +273,7 @@ internal class SignUpServiceTest {
 
         val violations = validator.validate(createNicknameVariableMember(nickname))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("한글/영문 대소문자 혹은 숫자를 3 ~ 10자 내로 입력해주세요."))
     }
 
@@ -277,7 +282,7 @@ internal class SignUpServiceTest {
     fun `nickname validation fail with empty string included`() {
         val violations = validator.validate(createNicknameVariableMember("배달 배달"))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("한글/영문 대소문자 혹은 숫자를 3 ~ 10자 내로 입력해주세요."))
     }
 
@@ -286,7 +291,7 @@ internal class SignUpServiceTest {
     fun `nickname validation fail with any special chars included`() {
         val violations = validator.validate(createNicknameVariableMember("배달Mas!@#"))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("한글/영문 대소문자 혹은 숫자를 3 ~ 10자 내로 입력해주세요."))
     }
 
@@ -305,7 +310,7 @@ internal class SignUpServiceTest {
     fun `mobile validation fail with non-valid mobile structure`() {
         val violations = validator.validate(createMobileVariableMember("010-123-456"))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("휴대폰 번호를 형식에 맞게 입력해주세요."))
     }
 
@@ -314,7 +319,8 @@ internal class SignUpServiceTest {
     fun `mobile validation fail with empty string as input`() {
         val violations = validator.validate(createMobileVariableMember(""))
         assertEquals(1, violations.size)
-        assertThat(violations).extracting(ConstraintViolation<MemberDTO>::getMessage)
+        assertThat(violations).extracting(ConstraintViolation<SignUpRequest>::getMessage)
             .containsOnly(Tuple("휴대폰 번호를 형식에 맞게 입력해주세요."))
     }
 }
+
